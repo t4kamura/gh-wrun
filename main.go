@@ -1,6 +1,8 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -11,6 +13,14 @@ import (
 const version = "0.0.0"
 
 func main() {
+	v := flag.Bool("v", false, "show version")
+	flag.Parse()
+
+	if *v {
+		fmt.Printf("ghrun version %s\n", version)
+		os.Exit(0)
+	}
+
 	// TODO:ブランチ、選択方式に変更
 
 	branch, err := GetBranchName()
