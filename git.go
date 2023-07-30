@@ -18,7 +18,6 @@ func GetBranchName() (string, error) {
 }
 
 // GetRemoteBranches returns the list of remote branches.
-// but exclude HEAD.
 func GetRemoteBranches() ([]string, error) {
 	cmd := exec.Command("git", "branch", "-r")
 	out, err := cmd.Output()
@@ -32,6 +31,7 @@ func GetRemoteBranches() ([]string, error) {
 		branches = append(branches, sc.Text())
 	}
 
+	// Remove the "origin/" prefix
 	formattedBranches := []string{}
 	for _, b := range branches {
 		formattedBranches = append(formattedBranches, strings.Split(b, "/")[1])
