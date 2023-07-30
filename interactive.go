@@ -4,12 +4,13 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 )
 
-func AskChoices(message string, choices []string) (string, error) {
+func AskChoices(message string, choices []string, defaultInput string) (string, error) {
 	var answer string
 
 	prompt := &survey.Select{
 		Message: message,
 		Options: choices,
+		Default: defaultInput,
 	}
 	err := survey.AskOne(prompt, &answer)
 	return answer, err

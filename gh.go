@@ -51,7 +51,7 @@ func SelectWorkflowByUser(workflows []GitHubWorkflow) (GitHubWorkflow, error) {
 		return workflows[0], nil
 	}
 
-	selectedWorkflowName, err := AskChoices("Select the workflow you wish to run", workflowNames)
+	selectedWorkflowName, err := AskChoices("Select the workflow you wish to run", workflowNames, workflowNames[0])
 	if err != nil {
 		return selectedWorkflow, err
 	}
@@ -139,7 +139,7 @@ func (w *GitHubWorkflowInputs) AskToUser() (map[string]string, error) {
 		var answer string
 		switch v.Type {
 		case "choice":
-			answer, err = AskChoices(message, v.Options)
+			answer, err = AskChoices(message, v.Options, v.Options[0])
 		case "bool":
 			var ok bool
 			println(v.Default)

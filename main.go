@@ -21,39 +21,9 @@ func main() {
 		os.Exit(0)
 	}
 
-	// TODO:ブランチ、選択方式に変更
-
-	branch, err := GetBranchName()
+	branch, err := AskBranch()
 	if err != nil {
 		log.Fatal(err)
-	}
-	answer, err := AskConfirm("Running git branch: "+branch, true)
-	if err != nil {
-		log.Fatal(err)
-	}
-	rBranches, err := GetRemoteBranches()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if !answer {
-		answer, err := AskChoices("Which branch would you like to run a warflow on?", rBranches)
-		if err != nil {
-			log.Fatal(err)
-		}
-		branch = answer
-	} else {
-		// check if the current branch is in the remote
-		isRemote := false
-		for _, b := range rBranches {
-			if b == branch {
-				isRemote = true
-				break
-			}
-		}
-		if !isRemote {
-			log.Fatal("The current branch is not in the remote")
-		}
 	}
 
 	workflows, err := GetWorkflows()
@@ -96,7 +66,7 @@ func main() {
 	table.Render()
 
 	// confirm
-	answer, err = AskConfirm("Run this?", true)
+	answer, err := AskConfirm("Run this?", true)
 	if err != nil {
 		log.Fatal(err)
 	}
