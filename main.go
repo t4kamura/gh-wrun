@@ -77,6 +77,9 @@ func main() {
 
 	selectedWorkflowFile := filepath.Base(selectedWorkflow.Name)
 	fieldArgs, err := workflowInputs.AskToUser()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// generate table
 	tableData := [][]string{
