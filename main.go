@@ -93,7 +93,7 @@ func main() {
 	table.Render()
 
 	// confirm
-	answer, err = AskConfirm("Would you like to run a warflow with the above information?", true)
+	answer, err = AskConfirm("Run this?", true)
 	if err != nil {
 		log.Fatal(err)
 	}
