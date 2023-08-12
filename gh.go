@@ -4,73 +4,32 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
-	"strconv"
 
 	"os/exec"
 
-	"gopkg.in/yaml.v3"
+	"gopkg.in/yaml.v2"
 )
 
-type GitHubWorkflow struct {
+type GhWorkflow struct {
 	Name   string
 	Status string
 	Id     string
 }
 
-// Run runs a workflow.
-func (w *GitHubWorkflow) Run(branch string, fieldArgs map[string]string) error {
-	args := []string{"workflow", "run", w.Id, "-r", branch}
-	for k, v := range fieldArgs {
-		args = append(args, "-f", k+"="+v)
-	}
-	cmd := exec.Command("gh", args...)
-	return cmd.Run()
+type GhWorkflowInput struct {
+	Name        string
+	Required    bool
+	Description string
+	Default     string
+	Type        string
+	Options     []string
 }
 
-// SelectWorkflow returns a workflow selected by user.
-// If there is only one workflow, it ask ok or cancel.
-func SelectWorkflowByUser(workflows []GitHubWorkflow) (GitHubWorkflow, error) {
-	var selectedWorkflow GitHubWorkflow
-
-	workflowNames := []string{}
-	for _, workflow := range workflows {
-		workflowNames = append(workflowNames, workflow.Name)
-	}
-
-	if len(workflowNames) == 1 {
-		ok, err := AskConfirm("Can I proceed with the following file? \n"+workflowNames[0], true)
-
-		if err != nil {
-			return selectedWorkflow, err
-		}
-
-		if !ok {
-			return selectedWorkflow, errors.New("Canceled")
-		}
-
-		return workflows[0], nil
-	}
-
-	selectedWorkflowName, err := AskChoices("Select the workflow you wish to run", workflowNames, workflowNames[0])
-	if err != nil {
-		return selectedWorkflow, err
-	}
-
-	for _, w := range workflows {
-		if w.Name == selectedWorkflowName {
-			selectedWorkflow = w
-		}
-	}
-
-	if selectedWorkflow.Name == "" {
-		return selectedWorkflow, errors.New("No workflow found")
-	}
-	return selectedWorkflow, nil
-}
+// TODO: test
 
 // GetWorkflows returns a list of active workflows.
-func GetWorkflows() ([]GitHubWorkflow, error) {
-	var workflows []GitHubWorkflow
+func getWorkflows() ([]GhWorkflow, error) {
+	var workflows []GhWorkflow
 
 	// if include disabled, add -a flag
 	cmd := exec.Command("gh", "workflow", "list")
@@ -94,7 +53,7 @@ func GetWorkflows() ([]GitHubWorkflow, error) {
 			return workflows, errors.New("Error parsing workflow")
 		}
 
-		workflows = append(workflows, GitHubWorkflow{
+		workflows = append(workflows, GhWorkflow{
 			Name:   words[0],
 			Status: words[1],
 			Id:     words[2],
@@ -108,74 +67,81 @@ func GetWorkflows() ([]GitHubWorkflow, error) {
 	return workflows, nil
 }
 
-type GitHubWorkflowInputs map[string]struct {
-	Required    bool
-	Description string
-	Default     string
-	Type        string
-	Options     []string
-}
-
-type RespGitHubWorkflowInputs struct {
-	Name string
-	On   struct {
-		WorkflowDispatch struct {
-			Inputs GitHubWorkflowInputs
-		} `yaml:"workflow_dispatch"`
-	}
-}
-
-// AskToUser asks inputs to user.
-func (w *GitHubWorkflowInputs) AskToUser() (map[string]string, error) {
-	var err error
-	answers := make(map[string]string)
-
-	for k, v := range *w {
-		message := v.Description
-		if message == "" {
-			message = k
-		}
-
-		var answer string
-		switch v.Type {
-		case "choice":
-			answer, err = AskChoices(message, v.Options, v.Options[0])
-		case "bool":
-			var ok bool
-			println(v.Default)
-			// var defaultInput bool
-			d, _ := strconv.ParseBool(v.Default)
-			ok, err = AskConfirm(message, d)
-			answer = strconv.FormatBool(ok)
-		default:
-			answer, err = AskInput(message, v.Default)
-		}
-
-		if err != nil {
-			return nil, err
-		}
-
-		answers[k] = answer
-	}
-
-	return answers, nil
-}
+// TODO: test
 
 // GetWorkflowInputs returns inputs for a workflow.
-func GetWorkflowInputs(workflowId string) (GitHubWorkflowInputs, error) {
-	var workflowInputs GitHubWorkflowInputs
-	cmd := exec.Command("gh", "workflow", "view", workflowId, "-y")
+func (g *GhWorkflow) GetWorkflowInputs() ([]GhWorkflowInput, error) {
+	var w []GhWorkflowInput
+	cmd := exec.Command("gh", "workflow", "view", g.Id, "-y")
 	out, err := cmd.Output()
 
 	if err != nil {
-		return workflowInputs, err
+		return w, err
 	}
 
-	w := RespGitHubWorkflowInputs{}
-	err = yaml.Unmarshal(out, &w)
+	r := struct {
+		Name string
+		On   struct {
+			WorkflowDispatch struct {
+				Inputs yaml.MapSlice
+			} `yaml:"workflow_dispatch"`
+		}
+	}{}
+
+	err = yaml.Unmarshal(out, &r)
 	if err != nil {
-		return workflowInputs, err
+		return w, err
 	}
 
-	return w.On.WorkflowDispatch.Inputs, nil
+	for _, v := range r.On.WorkflowDispatch.Inputs {
+		name := v.Key.(string)
+
+		var (
+			required     bool
+			description  string
+			defaultValue string
+			typeValue    string
+			options      []string
+		)
+
+		if p, ok := v.Value.(yaml.MapSlice); ok {
+			for _, vv := range p {
+				switch vv.Key.(string) {
+				case "required":
+					required = vv.Value.(bool)
+				case "description":
+					description = vv.Value.(string)
+				case "default":
+					defaultValue = vv.Value.(string)
+				case "type":
+					typeValue = vv.Value.(string)
+				case "options":
+					for _, o := range vv.Value.([]interface{}) {
+						options = append(options, o.(string))
+					}
+				}
+			}
+		}
+
+		w = append(w, GhWorkflowInput{
+			Name:        name,
+			Required:    required,
+			Description: description,
+			Default:     defaultValue,
+			Type:        typeValue,
+			Options:     options,
+		})
+	}
+
+	return w, nil
+}
+
+// Run runs a workflow.
+func (w *GhWorkflow) Run(branch string, fieldArgs map[string]string) error {
+	args := []string{"workflow", "run", w.Id, "-r", branch}
+	for k, v := range fieldArgs {
+		args = append(args, "-f", k+"="+v)
+	}
+	cmd := exec.Command("gh", args...)
+	return cmd.Run()
 }

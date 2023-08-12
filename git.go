@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"os/exec"
 	"strings"
 )
@@ -39,51 +38,4 @@ func getRemoteBranches() ([]string, error) {
 	}
 
 	return formattedBranches, nil
-}
-
-// AskBranch asks the user to select a branch.
-func AskBranch() (string, error) {
-	currentBranch, err := getBranchName()
-	if err != nil {
-		return "", err
-	}
-
-	rBranches, err := getRemoteBranches()
-	if err != nil {
-		return "", err
-	}
-
-	if len(rBranches) == 0 {
-		return "", errors.New("No remote branches found")
-	}
-
-	if len(rBranches) == 1 && rBranches[0] == currentBranch {
-		answer, err := AskConfirm("Run on this branch: "+currentBranch, true)
-		if err != nil {
-			return "", err
-		}
-
-		if !answer {
-			return "", errors.New("No other executable branch found")
-		}
-		return currentBranch, nil
-	}
-
-	// order rBranches so that currentBranch is at the top
-	for i, b := range rBranches {
-		if b == currentBranch {
-			// remove currentBranch from rBranches
-			rBranches = rBranches[:i+copy(rBranches[i:], rBranches[i+1:])]
-
-			// append currentBranch to the top
-			rBranches = append([]string{currentBranch}, rBranches...)
-		}
-	}
-
-	answer, err := AskChoices("Select a branch", rBranches, currentBranch)
-	if err != nil {
-		return "", err
-	}
-
-	return answer, nil
 }
