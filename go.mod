@@ -1,4 +1,4 @@
-module github.com/t4kamura/ghrun
+module github.com/t4kamura/gh-wrun
 
 go 1.20
 

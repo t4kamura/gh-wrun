@@ -14,7 +14,7 @@ func main() {
 	flag.Parse()
 
 	if *v {
-		fmt.Printf("ghrun version %s\n", version)
+		fmt.Printf("gh-wrun version %s\n", version)
 		os.Exit(0)
 	}
 
