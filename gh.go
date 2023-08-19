@@ -137,10 +137,13 @@ func (g *GhWorkflow) GetWorkflowInputs() ([]GhWorkflowInput, error) {
 }
 
 // Run runs a workflow.
-func (w *GhWorkflow) Run(branch string, fieldArgs map[string]string) error {
+func (w *GhWorkflow) Run(inputResult *InputResult) error {
+	branch := inputResult.branch
+	fieldArgs := inputResult.workflowInputs
+
 	args := []string{"workflow", "run", w.Id, "-r", branch}
-	for k, v := range fieldArgs {
-		args = append(args, "-f", k+"="+v)
+	for _, m := range fieldArgs {
+		args = append(args, "-f", m.Key+"="+m.Value)
 	}
 	cmd := exec.Command("gh", args...)
 	return cmd.Run()

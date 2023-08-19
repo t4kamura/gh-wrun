@@ -28,7 +28,7 @@ func main() {
 		log.Fatal("Canceled")
 	}
 
-	if err := r.workflow.Run(*r.branch, *r.workflowInputs); err != nil {
+	if err := r.workflow.Run(r); err != nil {
 		log.Fatal(err)
 	}
 }

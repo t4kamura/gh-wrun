@@ -11,11 +11,11 @@ func renderTable(r InputResult) {
 	// generate table
 	selectedWorkflowFile := filepath.Base(r.workflow.Name)
 	tableData := [][]string{
-		{"Targets", "Git branch", *r.branch},
+		{"Targets", "Git branch", r.branch},
 		{"Targets", "Workflow", selectedWorkflowFile},
 	}
-	for k, v := range *r.workflowInputs {
-		tableData = append(tableData, []string{"Inputs", k, v})
+	for _, m := range r.workflowInputs {
+		tableData = append(tableData, []string{"Inputs", m.Key, m.Value})
 	}
 	table := tablewriter.NewWriter(os.Stdout)
 	table.AppendBulk(tableData)

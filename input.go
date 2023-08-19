@@ -5,10 +5,15 @@ import (
 	"strconv"
 )
 
+type InputResultWorkflowInput struct {
+	Key   string
+	Value string
+}
+
 type InputResult struct {
-	branch         *string
-	workflow       *GhWorkflow
-	workflowInputs *map[string]string
+	branch         string
+	workflow       GhWorkflow
+	workflowInputs []InputResultWorkflowInput
 	isRun          bool
 }
 
@@ -56,7 +61,7 @@ func (r *InputResult) askBranch() error {
 		if !answer {
 			return errors.New("No other executable branch found")
 		}
-		r.branch = &currentBranch
+		r.branch = currentBranch
 		return nil
 	}
 
@@ -76,7 +81,7 @@ func (r *InputResult) askBranch() error {
 		return err
 	}
 
-	r.branch = &answer
+	r.branch = answer
 
 	return nil
 }
@@ -111,7 +116,7 @@ func (r *InputResult) askWorkflow() error {
 			return errors.New("Canceled")
 		}
 
-		r.workflow = &workflows[0]
+		r.workflow = workflows[0]
 		return nil
 	}
 
@@ -130,14 +135,14 @@ func (r *InputResult) askWorkflow() error {
 		return errors.New("No workflow found")
 	}
 
-	r.workflow = &selectedWorkflow
+	r.workflow = selectedWorkflow
 	return nil
 }
 
 // askWorkflowInputs asks workflow inputs to user.
 func (r *InputResult) askWorkflowInputs() error {
 	var err error
-	answers := make(map[string]string)
+	answers := []InputResultWorkflowInput{}
 
 	if r.workflow.Name == "" {
 		return errors.New("No workflow found. Need to run AskWorkflow() before AskWorkflowInputs()")
@@ -171,10 +176,13 @@ func (r *InputResult) askWorkflowInputs() error {
 			return err
 		}
 
-		answers[v.Name] = answer
+		answers = append(answers, InputResultWorkflowInput{
+			Key:   v.Name,
+			Value: answer,
+		})
 	}
 
-	r.workflowInputs = &answers
+	r.workflowInputs = answers
 	return nil
 }
 
