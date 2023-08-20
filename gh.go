@@ -10,19 +10,15 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type GhWorkflow struct {
-	Name   string
-	Status string
-	Id     string
-}
+type GhWorkflow struct{ Name, Status, Id string }
 
 type GhWorkflowInput struct {
-	Name        string
-	Required    bool
-	Description string
-	Default     string
-	Type        string
-	Options     []string
+	Name,
+	Description,
+	Default,
+	Type string
+	Required bool
+	Options  []string
 }
 
 // TODO: test

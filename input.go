@@ -5,10 +5,7 @@ import (
 	"strconv"
 )
 
-type InputResultWorkflowInput struct {
-	Key   string
-	Value string
-}
+type InputResultWorkflowInput struct{ Key, Value string }
 
 type InputResult struct {
 	branch         string
