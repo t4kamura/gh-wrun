@@ -1,0 +1,39 @@
+name: TestInput
+on:
+  workflow_dispatch:
+    inputs:
+      string-all:
+        type: string
+        required: true
+        description: string all test
+        default: string default
+      string-no-type-required:
+        description: string no type & required test
+      choice-all:
+        type: choice
+        required: true
+        description: choice test
+        default: optionB
+        options:
+          - optionA
+          - optionB
+          - optionC
+      boolean-default-true:
+        type: boolean
+        required: true
+        description: boolean default true test
+        default: true
+      boolean-default-false:
+        type: boolean
+        required: true
+        description: boolean default false test
+        default: false
+      boolean-no-default:
+        type: boolean
+        required: true
+        description: boolean no default test
+      environment-all:
+        type: environment
+        required: true
+        description: environment test
+        default: production

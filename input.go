@@ -158,9 +158,9 @@ func (r *InputResult) askWorkflowInputs() error {
 
 		var answer string
 		switch v.Type {
-		case "choice":
+		case GhWorkflowInputTypeChoice:
 			answer, err = AskChoices(message, v.Options, v.Options[0])
-		case "bool":
+		case GhWorkflowInputTypeBoolean:
 			var ok bool
 			d, _ := strconv.ParseBool(v.Default)
 			ok, err = AskConfirm(message, d)
