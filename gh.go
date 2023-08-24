@@ -94,6 +94,15 @@ func (g *GhWorkflow) GetWorkflowInputs() ([]GhWorkflowInput, error) {
 		return nil, err
 	}
 
+	lErrors, err := lint(out)
+	if lErrors != nil {
+		for _, e := range lErrors {
+			fmt.Printf("%d:%d: %s\n", e.Line, e.Column, e.Message)
+		}
+
+		return nil, errors.New("Workflow file is invalid")
+	}
+
 	w, err := parseWorkflowInputs(out)
 
 	return w, nil
