@@ -28,7 +28,7 @@ func TestRenderTable(t *testing.T) {
 		},
 	}
 
-	expected := "+---------+------------+----------+\n" +
+	want := "+---------+------------+----------+\n" +
 		"| Targets | Git branch | main     |\n" +
 		"+         +------------+----------+\n" +
 		"|         | Workflow   | test.yml |\n" +
@@ -53,7 +53,7 @@ func TestRenderTable(t *testing.T) {
 	io.Copy(&buf, pr)
 	output := buf.String()
 
-	if output != expected {
-		t.Errorf("Expected is %s but got %s\n", expected, output)
+	if output != want {
+		t.Errorf("Expected is %s but got %s\n", want, output)
 	}
 }
