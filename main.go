@@ -11,6 +11,7 @@ const version = "0.0.0"
 
 func main() {
 	v := flag.Bool("v", false, "show version")
+	l := flag.Bool("l", false, "check workflow file with linter before parsing")
 	flag.Parse()
 
 	if *v {
@@ -18,7 +19,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	r, err := NewInputResult()
+	r, err := NewInputResult(*l)
 
 	if err != nil {
 		log.Fatal(err)

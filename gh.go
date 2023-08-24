@@ -86,7 +86,7 @@ func parseWorkflows(src []byte) ([]GhWorkflow, error) {
 }
 
 // GetWorkflowInputs returns inputs for a workflow.
-func (g *GhWorkflow) GetWorkflowInputs() ([]GhWorkflowInput, error) {
+func (g *GhWorkflow) GetWorkflowInputs(runLinter bool) ([]GhWorkflowInput, error) {
 	cmd := exec.Command("gh", "workflow", "view", g.Id, "-y")
 	out, err := cmd.Output()
 
@@ -94,13 +94,18 @@ func (g *GhWorkflow) GetWorkflowInputs() ([]GhWorkflowInput, error) {
 		return nil, err
 	}
 
-	lErrors, err := lint(out)
-	if lErrors != nil {
-		for _, e := range lErrors {
-			fmt.Printf("%d:%d: %s\n", e.Line, e.Column, e.Message)
+	if runLinter {
+		lErrors, err := lint(out)
+		if err != nil {
+			return nil, err
 		}
+		if lErrors != nil {
+			for _, e := range lErrors {
+				fmt.Printf("%d:%d: %s\n", e.Line, e.Column, e.Message)
+			}
 
-		return nil, errors.New("Workflow file is invalid")
+			return nil, errors.New("Workflow file is invalid")
+		}
 	}
 
 	w, err := parseWorkflowInputs(out)

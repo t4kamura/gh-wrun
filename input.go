@@ -16,14 +16,14 @@ type InputResult struct {
 
 // NewInputResult asks the user to all the required inputs to run a workflow.
 // The answers are stored in InputResult receiver.
-func NewInputResult() (*InputResult, error) {
+func NewInputResult(runLinter bool) (*InputResult, error) {
 	r := &InputResult{}
 
 	if err := r.askBranch(); err != nil {
 		return r, err
 	} else if err := r.askWorkflow(); err != nil {
 		return r, err
-	} else if err := r.askWorkflowInputs(); err != nil {
+	} else if err := r.askWorkflowInputs(runLinter); err != nil {
 		return r, err
 	} else if err := r.askRun(); err != nil {
 		return r, err
@@ -137,7 +137,7 @@ func (r *InputResult) askWorkflow() error {
 }
 
 // askWorkflowInputs asks workflow inputs to user.
-func (r *InputResult) askWorkflowInputs() error {
+func (r *InputResult) askWorkflowInputs(runLinter bool) error {
 	var err error
 	answers := []InputResultWorkflowInput{}
 
@@ -145,7 +145,7 @@ func (r *InputResult) askWorkflowInputs() error {
 		return errors.New("No workflow found. Need to run AskWorkflow() before AskWorkflowInputs()")
 	}
 
-	w, err := r.workflow.GetWorkflowInputs()
+	w, err := r.workflow.GetWorkflowInputs(runLinter)
 	if err != nil {
 		return err
 	}
