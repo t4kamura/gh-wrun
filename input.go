@@ -16,10 +16,10 @@ type InputResult struct {
 
 // NewInputResult asks the user to all the required inputs to run a workflow.
 // The answers are stored in InputResult receiver.
-func NewInputResult(runLinter bool) (*InputResult, error) {
+func NewInputResult(runLinter bool, branchAuto bool) (*InputResult, error) {
 	r := &InputResult{}
 
-	if err := r.askBranch(); err != nil {
+	if err := r.askBranch(branchAuto); err != nil {
 		return r, err
 	} else if err := r.askWorkflow(); err != nil {
 		return r, err
@@ -34,10 +34,16 @@ func NewInputResult(runLinter bool) (*InputResult, error) {
 
 // AskBranch asks the user to select a branch.
 // The answer is stored in InputResult receiver.
-func (r *InputResult) askBranch() error {
+// If the auto flag is true, automatically set the current branch
+func (r *InputResult) askBranch(auto bool) error {
 	currentBranch, err := getBranchName()
 	if err != nil {
 		return err
+	}
+
+	if auto {
+		r.branch = currentBranch
+		return nil
 	}
 
 	rBranches, err := getRemoteBranches()
