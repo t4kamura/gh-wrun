@@ -25,10 +25,29 @@ func getRemoteBranches() ([]string, error) {
 		return []string{}, err
 	}
 
-	sc := bufio.NewScanner(bytes.NewReader(out))
+	branches := parseBranchesResult(&out)
+
+	return branches, nil
+}
+
+// parseBranchesResult parses the output of `git branch -r` and returns the list of branches.
+func parseBranchesResult(out *[]byte) []string {
+	sc := bufio.NewScanner(bytes.NewReader(*out))
 	branches := []string{}
 	for sc.Scan() {
-		branches = append(branches, sc.Text())
+		// to exclude results such as
+		// origin/HEAD -> origin/main
+		scc := bufio.NewScanner(bytes.NewReader(sc.Bytes()))
+		scc.Split(bufio.ScanWords)
+		var words []string
+
+		for scc.Scan() {
+			words = append(words, scc.Text())
+		}
+
+		if len(words) == 1 {
+			branches = append(branches, words[0])
+		}
 	}
 
 	// Remove the "origin/" prefix
@@ -37,5 +56,5 @@ func getRemoteBranches() ([]string, error) {
 		formattedBranches = append(formattedBranches, strings.Split(b, "/")[1])
 	}
 
-	return formattedBranches, nil
+	return formattedBranches
 }
