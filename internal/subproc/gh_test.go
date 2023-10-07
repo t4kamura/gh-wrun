@@ -11,10 +11,12 @@ const testDataDir = "../../testdata"
 
 func TestParseWorkflows(t *testing.T) {
 	validTests := []struct {
+		name  string
 		input string
 		want  []GhWorkflow
 	}{
 		{
+			name:  "single workflow",
 			input: ".github/workflows/test-1.yml\tactive\t12345678\n",
 			want: []GhWorkflow{
 				{
@@ -25,6 +27,7 @@ func TestParseWorkflows(t *testing.T) {
 			},
 		},
 		{
+			name: "multiple workflows",
 			input: ".github/workflows/test-1.yml\tactive\t12345678\n" +
 				".github/workflows/test-2.yml\tactive\t22345678\n",
 			want: []GhWorkflow{
@@ -42,25 +45,38 @@ func TestParseWorkflows(t *testing.T) {
 		},
 	}
 
-	invalidTests := []string{
-		"invalid input",
-		".github/workflows/test-2.yml\tactive\t22345678\thoge\n",
+	invalidTests := []struct {
+		name  string
+		input string
+	}{
+		{
+			name:  "just a string",
+			input: "invalid input",
+		},
+		{
+			name:  "Many tab separated values",
+			input: ".github/workflows/test-2.yml\tactive\t22345678\thoge\n",
+		},
 	}
 
 	for _, test := range validTests {
-		got, err := parseWorkflows([]byte(test.input))
-		if err != nil {
-			t.Errorf("Error parsing workflows: %s\n", err)
-		}
-		if !reflect.DeepEqual(got, test.want) {
-			t.Errorf("Expected is %v but got %v\n", test.want, got)
-		}
+		t.Run(test.name, func(t *testing.T) {
+			got, err := parseWorkflows([]byte(test.input))
+			if err != nil {
+				t.Errorf("Error parsing workflows: %s\n", err)
+			}
+			if !reflect.DeepEqual(got, test.want) {
+				t.Errorf("Expected is %v but got %v\n", test.want, got)
+			}
+		})
 	}
 
 	for _, test := range invalidTests {
-		if _, err := parseWorkflows([]byte(test)); err == nil {
-			t.Errorf("Expected error but got nil\n")
-		}
+		t.Run(test.name, func(t *testing.T) {
+			if _, err := parseWorkflows([]byte(test.input)); err == nil {
+				t.Errorf("Expected error but got nil\n")
+			}
+		})
 	}
 }
 
