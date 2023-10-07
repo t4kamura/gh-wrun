@@ -81,22 +81,15 @@ func TestParseWorkflows(t *testing.T) {
 }
 
 func TestParseWorkflowInputs(t *testing.T) {
-	validFile, err := os.ReadFile(path.Join(testDataDir, "valid.yml"))
-	if err != nil {
-		t.Fatalf("Error reading file: %s\n", err)
-	}
-
-	invalidFiles := []string{
-		path.Join(testDataDir, "invalid-input-key-name.yml"),
-		path.Join(testDataDir, "invalid-format.yml"),
-	}
-
+	// valid tests
 	validTests := []struct {
-		input []byte
-		want  []GhWorkflowInput
+		name          string
+		inputFileName string
+		want          []GhWorkflowInput
 	}{
 		{
-			input: validFile,
+			name:          "parse valid types",
+			inputFileName: "valid-all-types.yml",
 			want: []GhWorkflowInput{
 				{
 					Name:        "string-all",
@@ -150,25 +143,53 @@ func TestParseWorkflowInputs(t *testing.T) {
 				},
 			},
 		},
+		// want blank inputs
+		{
+			name:          "no inputs property",
+			inputFileName: "valid-no-inputs-property.yml",
+			want:          []GhWorkflowInput{},
+		},
+		{
+			name:          "no inputs childs",
+			inputFileName: "valid-no-inputs-childs.yml",
+			want:          []GhWorkflowInput{},
+		},
 	}
 
 	for _, test := range validTests {
-		got, err := parseWorkflowInputs(test.input)
-		if err != nil {
-			t.Errorf("Error parsing workflows: %s\n", err)
-		}
+		t.Run(test.name, func(t *testing.T) {
+			file, err := os.ReadFile(path.Join(testDataDir, test.inputFileName))
+			if err != nil {
+				t.Fatalf("Error reading file: %s\n", err)
+			}
 
-		if len(got) != len(test.want) {
-			t.Errorf("The number of elements is different. Expected is %d but got %d\n", len(test.want), len(got))
-		}
+			got, err := parseWorkflowInputs(file)
+			if err != nil {
+				t.Errorf("Error parsing workflows: %s\n", err)
+			}
 
-		if !reflect.DeepEqual(got, test.want) {
-			t.Errorf("Expected is %v but got %v\n", test.want, got)
-		}
+			if len(got) != len(test.want) {
+				t.Errorf("The number of elements is different. Expected is %d but got %d\n", len(test.want), len(got))
+			}
+
+			if !reflect.DeepEqual(got, test.want) {
+				t.Errorf("Expected is %v but got %v\n", test.want, got)
+			}
+		})
 	}
 
-	for _, file := range invalidFiles {
-		invalidFile, err := os.ReadFile(file)
+	// invalid tests
+	invalidTests := []struct {
+		name          string
+		inputFileName string
+	}{
+		{
+			name:          "invalid format",
+			inputFileName: "invalid-format.yml",
+		},
+	}
+	for _, test := range invalidTests {
+		invalidFile, err := os.ReadFile(path.Join(testDataDir, test.inputFileName))
 		if err != nil {
 			t.Fatalf("Error reading file: %s\n", err)
 		}

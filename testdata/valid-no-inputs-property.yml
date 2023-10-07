@@ -1,0 +1,3 @@
+name: TestInput
+on:
+  workflow_dispatch:

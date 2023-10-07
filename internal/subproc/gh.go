@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
-	"fmt"
 	"strconv"
 
 	"os/exec"
@@ -113,8 +112,9 @@ func parseWorkflowInputs(src []byte) ([]GhWorkflowInput, error) {
 
 	inputs := r.On.WorkflowDispatch.Inputs
 
+	// this is blank inputs case
 	if len(inputs) == 0 {
-		return w, fmt.Errorf("No inputs found for workflow %s", r.Name)
+		return []GhWorkflowInput{}, nil
 	}
 
 	for _, v := range inputs {
