@@ -19,7 +19,7 @@ type InputResult struct {
 
 // NewInputResult asks the user to all the required inputs to run a workflow.
 // The answers are stored in InputResult receiver.
-func NewInputResult(runLinter bool, branchAuto bool) (*InputResult, error) {
+func NewInputResult(branchAuto bool) (*InputResult, error) {
 	r := &InputResult{}
 
 	if err := r.askBranch(branchAuto); err != nil {
