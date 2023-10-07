@@ -1,4 +1,4 @@
-package main
+package subproc
 
 import (
 	"bufio"
@@ -8,7 +8,7 @@ import (
 )
 
 // getBranchName returns the current branch name.
-func getBranchName() (string, error) {
+func GetBranchName() (string, error) {
 	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
 	out, err := cmd.Output()
 	if err != nil {
@@ -18,7 +18,7 @@ func getBranchName() (string, error) {
 }
 
 // getRemoteBranches returns the list of remote branches.
-func getRemoteBranches() ([]string, error) {
+func GetRemoteBranches() ([]string, error) {
 	cmd := exec.Command("git", "branch", "-r")
 	out, err := cmd.Output()
 	if err != nil {

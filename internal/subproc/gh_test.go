@@ -1,10 +1,13 @@
-package main
+package subproc
 
 import (
 	"os"
+	"path"
 	"reflect"
 	"testing"
 )
+
+const testDataDir = "../../testdata"
 
 func TestParseWorkflows(t *testing.T) {
 	validTests := []struct {
@@ -62,14 +65,14 @@ func TestParseWorkflows(t *testing.T) {
 }
 
 func TestParseWorkflowInputs(t *testing.T) {
-	validFile, err := os.ReadFile("./testdata/valid.yml")
+	validFile, err := os.ReadFile(path.Join(testDataDir, "valid.yml"))
 	if err != nil {
 		t.Fatalf("Error reading file: %s\n", err)
 	}
 
 	invalidFiles := []string{
-		"./testdata/invalid-input-key-name.yml",
-		"./testdata/invalid-format.yml",
+		path.Join(testDataDir, "invalid-input-key-name.yml"),
+		path.Join(testDataDir, "invalid-format.yml"),
 	}
 
 	validTests := []struct {

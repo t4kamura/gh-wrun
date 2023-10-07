@@ -1,4 +1,4 @@
-package main
+package interactive
 
 import (
 	"github.com/AlecAivazis/survey/v2"

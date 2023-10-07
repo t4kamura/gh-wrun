@@ -1,17 +1,20 @@
-package main
+package input
 
 import (
 	"errors"
+	"path/filepath"
 	"strconv"
+
+	"github.com/t4kamura/gh-wrun/internal/interactive"
+	"github.com/t4kamura/gh-wrun/internal/subproc"
+	"github.com/t4kamura/gh-wrun/internal/table"
 )
 
-type InputResultWorkflowInput struct{ Key, Value string }
-
 type InputResult struct {
-	branch         string
-	workflow       GhWorkflow
-	workflowInputs []InputResultWorkflowInput
-	isRun          bool
+	Branch         string
+	Workflow       subproc.GhWorkflow
+	WorkflowInputs []struct{ Key, Value string }
+	IsRun          bool
 }
 
 // NewInputResult asks the user to all the required inputs to run a workflow.
@@ -23,9 +26,9 @@ func NewInputResult(runLinter bool, branchAuto bool) (*InputResult, error) {
 		return r, err
 	} else if err := r.askWorkflow(); err != nil {
 		return r, err
-	} else if err := r.askWorkflowInputs(runLinter); err != nil {
+	} else if err := r.askWorkflowInputs(); err != nil {
 		return r, err
-	} else if err := r.askRun(); err != nil {
+	} else if err := r.askRunWithRenderTable(); err != nil {
 		return r, err
 	}
 
@@ -36,17 +39,17 @@ func NewInputResult(runLinter bool, branchAuto bool) (*InputResult, error) {
 // The answer is stored in InputResult receiver.
 // If the auto flag is true, automatically set the current branch
 func (r *InputResult) askBranch(auto bool) error {
-	currentBranch, err := getBranchName()
+	currentBranch, err := subproc.GetBranchName()
 	if err != nil {
 		return err
 	}
 
 	if auto {
-		r.branch = currentBranch
+		r.Branch = currentBranch
 		return nil
 	}
 
-	rBranches, err := getRemoteBranches()
+	rBranches, err := subproc.GetRemoteBranches()
 	if err != nil {
 		return err
 	}
@@ -56,7 +59,7 @@ func (r *InputResult) askBranch(auto bool) error {
 	}
 
 	if len(rBranches) == 1 && rBranches[0] == currentBranch {
-		answer, err := AskConfirm("Run on this branch: "+currentBranch, true)
+		answer, err := interactive.AskConfirm("Run on this branch: "+currentBranch, true)
 		if err != nil {
 			return err
 		}
@@ -64,7 +67,7 @@ func (r *InputResult) askBranch(auto bool) error {
 		if !answer {
 			return errors.New("No other executable branch found")
 		}
-		r.branch = currentBranch
+		r.Branch = currentBranch
 		return nil
 	}
 
@@ -79,12 +82,12 @@ func (r *InputResult) askBranch(auto bool) error {
 		}
 	}
 
-	answer, err := AskChoices("Select a branch", rBranches, currentBranch)
+	answer, err := interactive.AskChoices("Select a branch", rBranches, currentBranch)
 	if err != nil {
 		return err
 	}
 
-	r.branch = answer
+	r.Branch = answer
 
 	return nil
 }
@@ -93,8 +96,8 @@ func (r *InputResult) askBranch(auto bool) error {
 // If there is only one workflow, it ask ok or cancel.
 // The answer is stored in InputResult receiver.
 func (r *InputResult) askWorkflow() error {
-	var selectedWorkflow GhWorkflow
-	workflows, err := getWorkflows()
+	var selectedWorkflow subproc.GhWorkflow
+	workflows, err := subproc.GetWorkflows()
 	if err != nil {
 		return err
 	}
@@ -109,7 +112,7 @@ func (r *InputResult) askWorkflow() error {
 	}
 
 	if len(workflowNames) == 1 {
-		ok, err := AskConfirm("Can I proceed with the following file? \n"+workflowNames[0], true)
+		ok, err := interactive.AskConfirm("Can I proceed with the following file? \n"+workflowNames[0], true)
 
 		if err != nil {
 			return err
@@ -119,11 +122,11 @@ func (r *InputResult) askWorkflow() error {
 			return errors.New("Canceled")
 		}
 
-		r.workflow = workflows[0]
+		r.Workflow = workflows[0]
 		return nil
 	}
 
-	selectedWorkflowName, err := AskChoices("Select the workflow you wish to run", workflowNames, workflowNames[0])
+	selectedWorkflowName, err := interactive.AskChoices("Select the workflow you wish to run", workflowNames, workflowNames[0])
 	if err != nil {
 		return err
 	}
@@ -138,20 +141,20 @@ func (r *InputResult) askWorkflow() error {
 		return errors.New("No workflow found")
 	}
 
-	r.workflow = selectedWorkflow
+	r.Workflow = selectedWorkflow
 	return nil
 }
 
 // askWorkflowInputs asks workflow inputs to user.
-func (r *InputResult) askWorkflowInputs(runLinter bool) error {
+func (r *InputResult) askWorkflowInputs() error {
 	var err error
-	answers := []InputResultWorkflowInput{}
+	answers := []struct{ Key, Value string }{}
 
-	if r.workflow.Name == "" {
+	if r.Workflow.Name == "" {
 		return errors.New("No workflow found. Need to run AskWorkflow() before AskWorkflowInputs()")
 	}
 
-	w, err := r.workflow.GetWorkflowInputs(runLinter)
+	w, err := r.Workflow.GetWorkflowInputs()
 	if err != nil {
 		return err
 	}
@@ -164,40 +167,56 @@ func (r *InputResult) askWorkflowInputs(runLinter bool) error {
 
 		var answer string
 		switch v.Type {
-		case GhWorkflowInputTypeChoice:
-			answer, err = AskChoices(message, v.Options, v.Options[0])
-		case GhWorkflowInputTypeBoolean:
+		case subproc.GhWorkflowInputTypeChoice:
+			answer, err = interactive.AskChoices(message, v.Options, v.Options[0])
+		case subproc.GhWorkflowInputTypeBoolean:
 			var ok bool
 			d, _ := strconv.ParseBool(v.Default)
-			ok, err = AskConfirm(message, d)
+			ok, err = interactive.AskConfirm(message, d)
 			answer = strconv.FormatBool(ok)
 		default:
-			answer, err = AskInput(message, v.Default)
+			answer, err = interactive.AskInput(message, v.Default)
 		}
 
 		if err != nil {
 			return err
 		}
 
-		answers = append(answers, InputResultWorkflowInput{
+		answers = append(answers, struct{ Key, Value string }{
 			Key:   v.Name,
 			Value: answer,
 		})
 	}
 
-	r.workflowInputs = answers
+	r.WorkflowInputs = answers
 	return nil
 }
 
 // AskRun asks the user to confirm the execution.
+// Render the table and ask if it is ok to run.
 // The answer is stored in InputResult receiver.
-func (r *InputResult) askRun() error {
-	renderTable(*r)
-	answer, err := AskConfirm("Run this?", true)
+func (r *InputResult) askRunWithRenderTable() error {
+	table.Render(r.genTableData())
+	answer, err := interactive.AskConfirm("Run this?", true)
 	if err != nil {
 		return err
 	}
 
-	r.isRun = answer
+	r.IsRun = answer
 	return nil
+}
+
+// genTableData generates table data from InputResult receiver.
+// It is used to render the table.
+func (r *InputResult) genTableData() [][]string {
+	selectedWorkflowFile := filepath.Base(r.Workflow.Name)
+	tableData := [][]string{
+		{"Targets", "Git branch", r.Branch},
+		{"Targets", "Workflow", selectedWorkflowFile},
+	}
+	for _, m := range r.WorkflowInputs {
+		tableData = append(tableData, []string{"Inputs", m.Key, m.Value})
+	}
+
+	return tableData
 }

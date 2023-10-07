@@ -1,4 +1,4 @@
-package main
+package subproc
 
 import (
 	"bufio"
@@ -40,7 +40,7 @@ const (
 )
 
 // GetWorkflows returns a list of active workflows.
-func getWorkflows() ([]GhWorkflow, error) {
+func GetWorkflows() ([]GhWorkflow, error) {
 	// if include disabled, add -a flag
 	cmd := exec.Command("gh", "workflow", "list")
 	out, err := cmd.Output()
@@ -86,26 +86,12 @@ func parseWorkflows(src []byte) ([]GhWorkflow, error) {
 }
 
 // GetWorkflowInputs returns inputs for a workflow.
-func (g *GhWorkflow) GetWorkflowInputs(runLinter bool) ([]GhWorkflowInput, error) {
+func (g *GhWorkflow) GetWorkflowInputs() ([]GhWorkflowInput, error) {
 	cmd := exec.Command("gh", "workflow", "view", g.Id, "-y")
 	out, err := cmd.Output()
 
 	if err != nil {
 		return nil, err
-	}
-
-	if runLinter {
-		lErrors, err := lint(out)
-		if err != nil {
-			return nil, err
-		}
-		if lErrors != nil {
-			for _, e := range lErrors {
-				fmt.Printf("%d:%d: %s\n", e.Line, e.Column, e.Message)
-			}
-
-			return nil, errors.New("Workflow file is invalid")
-		}
 	}
 
 	w, err := parseWorkflowInputs(out)
@@ -175,10 +161,7 @@ func parseWorkflowInputs(src []byte) ([]GhWorkflowInput, error) {
 }
 
 // Run runs a workflow.
-func (w *GhWorkflow) Run(inputResult *InputResult) error {
-	branch := inputResult.branch
-	fieldArgs := inputResult.workflowInputs
-
+func (w *GhWorkflow) Run(branch string, fieldArgs []struct{ Key, Value string }) error {
 	args := []string{"workflow", "run", w.Id, "-r", branch}
 	for _, m := range fieldArgs {
 		args = append(args, "-f", m.Key+"="+m.Value)

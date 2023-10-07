@@ -1,4 +1,4 @@
-package main
+package table
 
 import (
 	"bytes"
@@ -7,25 +7,13 @@ import (
 	"testing"
 )
 
-func TestRenderTable(t *testing.T) {
-	input := InputResult{
-		branch: "main",
-		workflow: GhWorkflow{
-			Name:   ".github/workflows/test.yml",
-			Status: "active",
-			Id:     "123456789",
-		},
-		workflowInputs: []InputResultWorkflowInput{
-			{
-				Key: "env", Value: "test",
-			},
-			{
-				Key: "message", Value: "test",
-			},
-			{
-				Key: "server", Value: "app",
-			},
-		},
+func TestRender(t *testing.T) {
+	input := [][]string{
+		{"Targets", "Git branch", "main"},
+		{"Targets", "Workflow", "test.yml"},
+		{"Inputs", "env", "test"},
+		{"Inputs", "message", "test"},
+		{"Inputs", "server", "app"},
 	}
 
 	want := "+---------+------------+----------+\n" +
@@ -44,7 +32,7 @@ func TestRenderTable(t *testing.T) {
 	pr, pw, _ := os.Pipe()
 	os.Stdout = pw
 
-	renderTable(input)
+	Render(input)
 
 	pw.Close()
 	os.Stdout = orgStdout
