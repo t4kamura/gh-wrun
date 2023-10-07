@@ -95,6 +95,9 @@ func (g *GhWorkflow) GetWorkflowInputs() ([]GhWorkflowInput, error) {
 	}
 
 	w, err := parseWorkflowInputs(out)
+	if err != nil {
+		return nil, err
+	}
 
 	return w, nil
 }
