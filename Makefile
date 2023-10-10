@@ -17,7 +17,7 @@ test:
 
 .PHONY: install
 install:
-	go install -ldflags=$(LDFLAGS) -trimpath cmd/$(BIN)/main.go
+	go install -ldflags=$(LDFLAGS) -trimpath github.com/t4kamura/gh-wrun/cmd/gh-wrun
 
 .PHONY: show-version
 show-version: $(GOBIN)/gobump
