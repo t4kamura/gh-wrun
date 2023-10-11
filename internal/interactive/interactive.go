@@ -1,39 +1,68 @@
 package interactive
 
 import (
-	"github.com/AlecAivazis/survey/v2"
+	"strconv"
+
+	"github.com/manifoldco/promptui"
 )
 
 func AskChoices(message string, choices []string, defaultInput string) (string, error) {
-	var answer string
-
-	prompt := &survey.Select{
-		Message: message,
-		Options: choices,
-		Default: defaultInput,
+	defaultCursor := 0
+	for i, choice := range choices {
+		if choice == defaultInput {
+			defaultCursor = i
+		}
 	}
-	err := survey.AskOne(prompt, &answer)
-	return answer, err
+	prompt := promptui.Select{
+		Label:     message,
+		Items:     choices,
+		CursorPos: defaultCursor,
+		HideHelp:  true,
+		Size:      10,
+	}
+	_, result, err := prompt.Run()
+
+	if err != nil {
+		return "", err
+	}
+
+	return result, nil
 }
 
 func AskInput(message string, defaultInput string) (string, error) {
-	var answer string
-
-	prompt := &survey.Input{
-		Message: message,
+	prompt := promptui.Prompt{
+		Label:   message,
 		Default: defaultInput,
 	}
-	err := survey.AskOne(prompt, &answer)
-	return answer, err
+
+	result, err := prompt.Run()
+	if err != nil {
+		return "", err
+	}
+
+	return result, nil
 }
 
 func AskConfirm(message string, defaultInput bool) (bool, error) {
-	var answer bool
-
-	prompt := &survey.Confirm{
-		Message: message,
-		Default: defaultInput,
+	choices := []bool{true, false}
+	defaultCursor := 0
+	for i, choice := range choices {
+		if choice == defaultInput {
+			defaultCursor = i
+		}
 	}
-	err := survey.AskOne(prompt, &answer)
-	return answer, err
+	prompt := promptui.Select{
+		Label:     message,
+		Items:     choices,
+		CursorPos: defaultCursor,
+		HideHelp:  true,
+	}
+	_, result, err := prompt.Run()
+
+	if err != nil {
+		return false, err
+	}
+	resultBool, _ := strconv.ParseBool(result)
+
+	return resultBool, nil
 }
