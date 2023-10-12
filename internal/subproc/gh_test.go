@@ -10,10 +10,11 @@ import (
 const testDataDir = "../../testdata"
 
 func TestParseWorkflows(t *testing.T) {
-	validTests := []struct {
-		name  string
-		input string
-		want  []GhWorkflow
+	testCases := []struct {
+		name      string
+		input     string
+		want      []GhWorkflow
+		expectErr bool
 	}{
 		{
 			name:  "single workflow",
@@ -25,6 +26,7 @@ func TestParseWorkflows(t *testing.T) {
 					Id:     "12345678",
 				},
 			},
+			expectErr: false,
 		},
 		{
 			name: "multiple workflows",
@@ -42,39 +44,33 @@ func TestParseWorkflows(t *testing.T) {
 					Id:     "22345678",
 				},
 			},
+			expectErr: false,
+		},
+		{
+			name:      "just a string",
+			input:     "invalid input",
+			want:      nil,
+			expectErr: true,
+		},
+		{
+			name:      "Many tab separated values",
+			input:     ".github/workflows/test-2.yml\tactive\t22345678\thoge\n",
+			want:      nil,
+			expectErr: true,
 		},
 	}
 
-	invalidTests := []struct {
-		name  string
-		input string
-	}{
-		{
-			name:  "just a string",
-			input: "invalid input",
-		},
-		{
-			name:  "Many tab separated values",
-			input: ".github/workflows/test-2.yml\tactive\t22345678\thoge\n",
-		},
-	}
-
-	for _, test := range validTests {
+	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
 			got, err := parseWorkflows([]byte(test.input))
-			if err != nil {
+			if test.expectErr && err == nil {
+				t.Errorf("Expected error but got nil\n")
+			} else if !test.expectErr && err != nil {
 				t.Errorf("Error parsing workflows: %s\n", err)
 			}
+
 			if !reflect.DeepEqual(got, test.want) {
 				t.Errorf("Expected is %v but got %v\n", test.want, got)
-			}
-		})
-	}
-
-	for _, test := range invalidTests {
-		t.Run(test.name, func(t *testing.T) {
-			if _, err := parseWorkflows([]byte(test.input)); err == nil {
-				t.Errorf("Expected error but got nil\n")
 			}
 		})
 	}
@@ -82,10 +78,11 @@ func TestParseWorkflows(t *testing.T) {
 
 func TestParseWorkflowInputs(t *testing.T) {
 	// valid tests
-	validTests := []struct {
+	testCases := []struct {
 		name          string
 		inputFileName string
 		want          []GhWorkflowInput
+		expectErr     bool
 	}{
 		{
 			name:          "parse valid types",
@@ -142,21 +139,30 @@ func TestParseWorkflowInputs(t *testing.T) {
 					Required:    true,
 				},
 			},
+			expectErr: false,
 		},
 		// want blank inputs
 		{
 			name:          "no inputs property",
 			inputFileName: "valid-no-inputs-property.yml",
 			want:          []GhWorkflowInput{},
+			expectErr:     false,
 		},
 		{
 			name:          "no inputs childs",
 			inputFileName: "valid-no-inputs-childs.yml",
 			want:          []GhWorkflowInput{},
+			expectErr:     false,
+		},
+		{
+			name:          "invalid format",
+			inputFileName: "invalid-format.yml",
+			want:          nil,
+			expectErr:     true,
 		},
 	}
 
-	for _, test := range validTests {
+	for _, test := range testCases {
 		t.Run(test.name, func(t *testing.T) {
 			file, err := os.ReadFile(path.Join(testDataDir, test.inputFileName))
 			if err != nil {
@@ -164,11 +170,14 @@ func TestParseWorkflowInputs(t *testing.T) {
 			}
 
 			got, err := parseWorkflowInputs(file)
-			if err != nil {
+
+			if test.expectErr && err == nil {
+				t.Errorf("Expected error but got nil\n")
+			} else if !test.expectErr && err != nil {
 				t.Errorf("Error parsing workflows: %s\n", err)
 			}
 
-			if len(got) != len(test.want) {
+			if !test.expectErr && len(got) != len(test.want) {
 				t.Errorf("The number of elements is different. Expected is %d but got %d\n", len(test.want), len(got))
 			}
 
@@ -176,26 +185,5 @@ func TestParseWorkflowInputs(t *testing.T) {
 				t.Errorf("Expected is %v but got %v\n", test.want, got)
 			}
 		})
-	}
-
-	// invalid tests
-	invalidTests := []struct {
-		name          string
-		inputFileName string
-	}{
-		{
-			name:          "invalid format",
-			inputFileName: "invalid-format.yml",
-		},
-	}
-	for _, test := range invalidTests {
-		invalidFile, err := os.ReadFile(path.Join(testDataDir, test.inputFileName))
-		if err != nil {
-			t.Fatalf("Error reading file: %s\n", err)
-		}
-		_, err = parseWorkflowInputs(invalidFile)
-		if err == nil {
-			t.Errorf("Expected error but got nil\n")
-		}
 	}
 }
