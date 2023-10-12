@@ -71,7 +71,7 @@ func parseWorkflows(src []byte) ([]GhWorkflow, error) {
 		}
 
 		if len(words) != 3 {
-			return workflows, errors.New("Error parsing workflow")
+			return workflows, errors.New("Error parsing workflows")
 		}
 
 		workflows = append(workflows, GhWorkflow{
