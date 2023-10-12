@@ -38,6 +38,7 @@ const (
 	GhWorkflowInputTypeEnvironment = "environment"
 )
 
+// GetGhVersion returns the version of gh.
 func GetGhVersion() (string, error) {
 	cmd := exec.Command("gh", "version")
 	out, err := cmd.Output()
