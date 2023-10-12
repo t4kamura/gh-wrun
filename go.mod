@@ -3,6 +3,7 @@ module github.com/t4kamura/gh-wrun
 go 1.20
 
 require (
+	github.com/hashicorp/go-version v1.6.0
 	github.com/manifoldco/promptui v0.9.0
 	github.com/olekukonko/tablewriter v0.0.5
 	gopkg.in/yaml.v2 v2.4.0

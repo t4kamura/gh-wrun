@@ -38,6 +38,25 @@ const (
 	GhWorkflowInputTypeEnvironment = "environment"
 )
 
+func GetGhVersion() (string, error) {
+	cmd := exec.Command("gh", "version")
+	out, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+
+	var words []string
+	sc := bufio.NewScanner(bytes.NewReader(out))
+	sc.Split(bufio.ScanWords)
+	for sc.Scan() {
+		words = append(words, sc.Text())
+	}
+	if len(words) < 3 {
+		return "", errors.New("Error parsing gh version")
+	}
+	return string(words[2]), nil
+}
+
 // GetWorkflows returns a list of active workflows.
 func GetWorkflows() ([]GhWorkflow, error) {
 	// if include disabled, add -a flag

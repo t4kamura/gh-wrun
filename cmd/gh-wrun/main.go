@@ -7,9 +7,13 @@ import (
 	"os"
 
 	"github.com/t4kamura/gh-wrun/internal/input"
+	ver "github.com/t4kamura/gh-wrun/internal/version"
 )
 
-const version = "0.0.0"
+const (
+	version           = "0.0.0"
+	requiredGhVersion = "2.35.0"
+)
 
 func main() {
 	v := flag.Bool("v", false, "show version")
@@ -19,6 +23,15 @@ func main() {
 	if *v {
 		fmt.Printf("gh-wrun version %s\n", version)
 		os.Exit(0)
+	}
+
+	result, err := ver.CheckGhVersion(requiredGhVersion)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if !result {
+		log.Fatalf("gh-wrun requires gh version %s or later", requiredGhVersion)
 	}
 
 	r, err := input.NewInputResult(!*b)
