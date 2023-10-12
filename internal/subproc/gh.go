@@ -3,6 +3,7 @@ package subproc
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"errors"
 	"strconv"
 
@@ -11,7 +12,12 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type GhWorkflow struct{ Name, Status, Id string }
+type GhWorkflow struct {
+	Id     json.Number `json:"id"`
+	Name   string      `json:"name"`
+	Path   string      `json:"path"`
+	Status string      `json:"state"`
+}
 
 type GhWorkflowInput struct {
 	Name,
@@ -61,44 +67,19 @@ func GetGhVersion() (string, error) {
 // GetWorkflows returns a list of active workflows.
 func GetWorkflows() ([]GhWorkflow, error) {
 	// if include disabled, add -a flag
-	cmd := exec.Command("gh", "workflow", "list")
+	cmd := exec.Command("gh", "workflow", "list", "--json", "id,name,path,state")
 	out, err := cmd.Output()
 	if err != nil {
 		return nil, err
 	}
 
-	workflows, err := parseWorkflows(out)
-	if err != nil {
-		return workflows, err
-	} else if len(workflows) == 0 {
-		return nil, errors.New("No workflows found")
+	var workflows []GhWorkflow
+	if err := json.Unmarshal(out, &workflows); err != nil {
+		return nil, err
 	}
 
-	return workflows, nil
-}
-
-// parseWorkflows parses the output from gh workflow list.
-func parseWorkflows(src []byte) ([]GhWorkflow, error) {
-	var workflows []GhWorkflow
-	sc := bufio.NewScanner(bytes.NewReader(src))
-	for sc.Scan() {
-		scc := bufio.NewScanner(bytes.NewReader(sc.Bytes()))
-		scc.Split(bufio.ScanWords)
-
-		var words []string
-		for scc.Scan() {
-			words = append(words, scc.Text())
-		}
-
-		if len(words) != 3 {
-			return workflows, errors.New("Error parsing workflows")
-		}
-
-		workflows = append(workflows, GhWorkflow{
-			Name:   words[0],
-			Status: words[1],
-			Id:     words[2],
-		})
+	if len(workflows) == 0 {
+		return nil, errors.New("No workflows found")
 	}
 
 	return workflows, nil
@@ -106,7 +87,7 @@ func parseWorkflows(src []byte) ([]GhWorkflow, error) {
 
 // GetWorkflowInputs returns inputs for a workflow.
 func (g *GhWorkflow) GetWorkflowInputs() ([]GhWorkflowInput, error) {
-	cmd := exec.Command("gh", "workflow", "view", g.Id, "-y")
+	cmd := exec.Command("gh", "workflow", "view", string(g.Id), "-y")
 	out, err := cmd.Output()
 
 	if err != nil {
@@ -185,7 +166,7 @@ func parseWorkflowInputs(src []byte) ([]GhWorkflowInput, error) {
 
 // Run runs a workflow.
 func (w *GhWorkflow) Run(branch string, fieldArgs []struct{ Key, Value string }) error {
-	args := []string{"workflow", "run", w.Id, "-r", branch}
+	args := []string{"workflow", "run", string(w.Id), "-r", branch}
 	for _, m := range fieldArgs {
 		args = append(args, "-f", m.Key+"="+m.Value)
 	}
