@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"flag"
@@ -15,7 +15,7 @@ const (
 	requiredGhVersion = "2.35.0"
 )
 
-func main() {
+func Execute() {
 	v := flag.Bool("v", false, "show version")
 	b := flag.Bool("b", false, "first interactively select a git branch name")
 	flag.Parse()

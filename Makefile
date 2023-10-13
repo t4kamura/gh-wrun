@@ -5,11 +5,11 @@ GOBIN ?= $(shell go env GOPATH)/bin
 
 .PHONY: build
 build:
-	go build -ldflags=$(LDFLAGS) -trimpath -o $(BIN) cmd/$(BIN)/main.go
+	go build -ldflags=$(LDFLAGS) -trimpath -o $(BIN) .
 
 .PHONY: xbuild
 xbuild: $(GOBIN)/goxz
-	goxz -n $(BIN) -pv=v$(VERSION) -arch=amd64 -os linux,darwin,windows -build-ldflags=$(LDFLAGS) cmd/$(BIN)/main.go
+	goxz -n $(BIN) -pv=v$(VERSION) -arch=amd64 -os linux,darwin,windows -build-ldflags=$(LDFLAGS) .
 
 .PHONY: test
 test:
@@ -17,11 +17,11 @@ test:
 
 .PHONY: install
 install:
-	go install -ldflags=$(LDFLAGS) -trimpath github.com/t4kamura/gh-wrun/cmd/gh-wrun
+	go install -ldflags=$(LDFLAGS) -trimpath github.com/t4kamura/gh-wrun
 
 .PHONY: show-version
 show-version: $(GOBIN)/gobump
-	@gobump show -r cmd/$(BIN)/
+	@gobump show -r cmd
 
 .PHONY: clean
 clean:
