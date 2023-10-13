@@ -25,6 +25,11 @@ func main() {
 		os.Exit(0)
 	}
 
+	if len(flag.Args()) != 0 {
+		flag.Usage()
+		os.Exit(1)
+	}
+
 	result, err := ver.CheckGhVersion(requiredGhVersion)
 	if err != nil {
 		log.Fatal(err)
