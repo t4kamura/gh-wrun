@@ -52,4 +52,6 @@ func main() {
 	if err := r.Workflow.Run(r.Branch, r.WorkflowInputs); err != nil {
 		log.Fatal(err)
 	}
+
+	fmt.Println("Workflow started")
 }
