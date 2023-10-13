@@ -43,7 +43,7 @@ func AskInput(message string, defaultInput string) (string, error) {
 	return result, nil
 }
 
-func AskConfirm(message string, defaultInput bool) (bool, error) {
+func AskBool(message string, defaultInput bool) (bool, error) {
 	choices := []bool{true, false}
 	defaultCursor := 0
 	for i, choice := range choices {
@@ -65,4 +65,20 @@ func AskConfirm(message string, defaultInput bool) (bool, error) {
 	resultBool, _ := strconv.ParseBool(result)
 
 	return resultBool, nil
+}
+
+func AskConfirm(message string) bool {
+	prompt := promptui.Prompt{
+		Label:     message,
+		IsConfirm: true,
+		Default:   "y",
+	}
+
+	result, err := prompt.Run()
+
+	if err != nil {
+		return false
+	}
+
+	return result == "y" || result == "Y" || result == ""
 }

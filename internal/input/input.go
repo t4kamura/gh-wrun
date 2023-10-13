@@ -59,11 +59,7 @@ func (r *InputResult) askBranch(auto bool) error {
 	}
 
 	if len(rBranches) == 1 && rBranches[0] == currentBranch {
-		answer, err := interactive.AskConfirm("Run on this branch: "+currentBranch, true)
-		if err != nil {
-			return err
-		}
-
+		answer := interactive.AskConfirm("Run on this branch: " + currentBranch)
 		if !answer {
 			return errors.New("No other executable branch found")
 		}
@@ -112,12 +108,7 @@ func (r *InputResult) askWorkflow() error {
 	}
 
 	if len(workflowNames) == 1 {
-		ok, err := interactive.AskConfirm("Can I proceed with the following file? \n"+workflowNames[0], true)
-
-		if err != nil {
-			return err
-		}
-
+		ok := interactive.AskConfirm("Can I proceed with the following file? \n" + workflowNames[0])
 		if !ok {
 			return errors.New("Canceled")
 		}
@@ -172,7 +163,7 @@ func (r *InputResult) askWorkflowInputs() error {
 		case subproc.GhWorkflowInputTypeBoolean:
 			var ok bool
 			d, _ := strconv.ParseBool(v.Default)
-			ok, err = interactive.AskConfirm(message, d)
+			ok, err = interactive.AskBool(message, d)
 			answer = strconv.FormatBool(ok)
 		default:
 			answer, err = interactive.AskInput(message, v.Default)
@@ -197,10 +188,7 @@ func (r *InputResult) askWorkflowInputs() error {
 // The answer is stored in InputResult receiver.
 func (r *InputResult) askRunWithRenderTable() error {
 	table.Render(r.genTableData())
-	answer, err := interactive.AskConfirm("Run this?", true)
-	if err != nil {
-		return err
-	}
+	answer := interactive.AskConfirm("Run this?")
 
 	r.IsRun = answer
 	return nil
