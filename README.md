@@ -6,7 +6,7 @@ Interactive selection of workflows inputs in various formats.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-![demo](https://github.com/t4kamura/ghrun/assets/51415522/94e64eae-3d17-4d7e-bba4-f4e34e763109)
+![demo](https://github.com/t4kamura/gh-wrun/assets/51415522/c1c54584-fa08-45d7-907a-0bfeebf75fd1)
 
 > **Note**
 > Something similar can be done with the `gh workflow run` command,
