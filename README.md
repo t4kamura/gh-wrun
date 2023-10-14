@@ -4,6 +4,8 @@ This is an extension for [gh CLI](https://github.com/cli/cli) that allows manual
 
 Interactive selection of workflows inputs in various formats.
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 ![demo](https://github.com/t4kamura/ghrun/assets/51415522/94e64eae-3d17-4d7e-bba4-f4e34e763109)
 
 > **Note**
@@ -11,8 +13,6 @@ Interactive selection of workflows inputs in various formats.
 > but there is no choice type select (at the moment).
 > I thought about contributing to the `gh cli`,
 > but since I was already running this tool personally, I decided to make it public.
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Installation
 
