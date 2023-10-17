@@ -40,7 +40,7 @@ Execute this command in the root directory of the repository you wish to run.
 > **Note**
 > Manual execution may need to be enabled on the GitHub side if this is your first time doing it manually.
 
-[`--help`](`--help`.md) for other options.
+`--help` for other options.
 
 ## Todo
 
