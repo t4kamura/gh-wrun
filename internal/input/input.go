@@ -2,6 +2,7 @@ package input
 
 import (
 	"errors"
+	"fmt"
 	"path/filepath"
 	"strconv"
 
@@ -165,6 +166,15 @@ func (r *InputResult) askWorkflowInputs() error {
 			d, _ := strconv.ParseBool(v.Default)
 			ok, err = interactive.AskBool(message, d)
 			answer = strconv.FormatBool(ok)
+		case subproc.GhWorkflowInputTypeEnvironment:
+			envs, err := subproc.GetEnvironments()
+			if err != nil {
+				return err
+			}
+			if len(envs) == 0 {
+				return fmt.Errorf("no environments exist")
+			}
+			answer, err = interactive.AskChoices(message, envs, envs[0])
 		default:
 			answer, err = interactive.AskInput(message, v.Default)
 		}

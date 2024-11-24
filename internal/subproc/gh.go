@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strconv"
 
 	"os/exec"
@@ -172,4 +173,77 @@ func (w *GhWorkflow) Run(branch string, fieldArgs []struct{ Key, Value string })
 	}
 	cmd := exec.Command("gh", args...)
 	return cmd.Run()
+}
+
+type GhApiGetEnvironmentsResult struct {
+	TotalCount   int                                     `json:"total_count"`
+	Environments []GhApiGetEnvironmentsResultEnvironment `json:"environments"`
+}
+
+type GhApiGetEnvironmentsFailedResult struct {
+	Message          string `json:"message"`
+	DocumentationURL string `json:"documentation_url"`
+	Status           string `json:"status"`
+}
+
+type GhApiGetEnvironmentsResultEnvironment struct {
+	Name string `json:"name"`
+}
+
+// GetEnvironments returns current repository GitHub Environments.
+func GetEnvironments() ([]string, error) {
+	repoWithOwner, err := getCurrentRepositoryWithOwner()
+	if err != nil {
+		return nil, err
+	}
+	endpoint := fmt.Sprintf("/repos/%s/environments", repoWithOwner)
+
+	cmd := exec.Command("gh", "api", "-H", "Accept: application/vnd.github+json", "-H", "X-GitHub-Api-Version: 2022-11-28", endpoint)
+	out, err := cmd.Output()
+	if err != nil {
+		if len(out) > 0 {
+			var failedRes GhApiGetEnvironmentsFailedResult
+			if err := json.Unmarshal(out, &failedRes); err != nil {
+				return nil, err
+			}
+			return nil, fmt.Errorf("failed to get environments, message: %s, status: %s, doc url: %s", failedRes.Message, failedRes.Status, failedRes.DocumentationURL)
+		}
+		return nil, err
+	}
+
+	var environmentsResult GhApiGetEnvironmentsResult
+	if err := json.Unmarshal(out, &environmentsResult); err != nil {
+		return nil, err
+	}
+
+	environments := make([]string, 0, environmentsResult.TotalCount)
+	for _, e := range environmentsResult.Environments {
+		environments = append(environments, e.Name)
+	}
+	return environments, nil
+}
+
+type GhRepoViewForNameWithOwnerResult struct {
+	Name string `json:"nameWithOwner"`
+}
+
+// getCurrentRepositoryWithOwner returns current repository name with owner
+// e.g. "t4kamura/gh-wrun"
+func getCurrentRepositoryWithOwner() (string, error) {
+	cmd := exec.Command("gh", "repo", "view", "--json", "nameWithOwner")
+	out, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+
+	var res GhRepoViewForNameWithOwnerResult
+	if err := json.Unmarshal(out, &res); err != nil {
+		return "", err
+	}
+
+	if res.Name == "" {
+		return "", fmt.Errorf("not found repository")
+	}
+
+	return res.Name, err
 }

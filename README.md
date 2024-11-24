@@ -46,7 +46,6 @@ Execute this command in the root directory of the repository you wish to run.
 
 - [ ] Add loading when executing gh commands internally.
 - [ ] Add a mode to wait for workflows to finish.
-- [ ] Inputs supports the environments workflow.
 
 ## License
 
