@@ -108,7 +108,7 @@ func (r *InputResult) askWorkflow() error {
 	}
 
 	if len(workflowNames) == 1 {
-		ok := interactive.AskConfirm("Can I proceed with the following file? \n" + workflowNames[0])
+		ok := interactive.AskConfirm(fmt.Sprintf("Do you want to run [%s]", workflowNames[0]))
 		if !ok {
 			return errors.New("Canceled")
 		}
