@@ -2,6 +2,8 @@ module github.com/t4kamura/gh-wrun
 
 go 1.20
 
+toolchain go1.23.3
+
 require (
 	github.com/hashicorp/go-version v1.7.0
 	github.com/manifoldco/promptui v0.9.0
