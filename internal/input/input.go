@@ -29,8 +29,8 @@ func NewInputResult(branchAuto bool) (*InputResult, error) {
 		return r, err
 	} else if err := r.askWorkflowInputs(); err != nil {
 		return r, err
-	} else if err := r.askRunWithRenderTable(); err != nil {
-		return r, err
+	} else {
+		r.askRunWithRenderTable()
 	}
 
 	return r, nil
@@ -175,6 +175,9 @@ func (r *InputResult) askWorkflowInputs() error {
 				return fmt.Errorf("no environments exist")
 			}
 			answer, err = interactive.AskChoices(message, envs, envs[0])
+			if err != nil {
+				return err
+			}
 		default:
 			answer, err = interactive.AskInput(message, v.Default)
 		}
@@ -196,12 +199,11 @@ func (r *InputResult) askWorkflowInputs() error {
 // AskRun asks the user to confirm the execution.
 // Render the table and ask if it is ok to run.
 // The answer is stored in InputResult receiver.
-func (r *InputResult) askRunWithRenderTable() error {
+func (r *InputResult) askRunWithRenderTable() {
 	table.Render(r.genTableData())
 	answer := interactive.AskConfirm("Run this?")
 
 	r.IsRun = answer
-	return nil
 }
 
 // genTableData generates table data from InputResult receiver.

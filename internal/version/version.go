@@ -12,6 +12,9 @@ func CheckGhVersion(required string) (bool, error) {
 	}
 
 	ver, err := version.NewVersion(v)
+	if err != nil {
+		return false, err
+	}
 	requiredVer, err := version.NewVersion(required)
 
 	return ver.GreaterThanOrEqual(requiredVer), err

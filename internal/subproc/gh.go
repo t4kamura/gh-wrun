@@ -62,7 +62,7 @@ func GetGhVersion() (string, error) {
 	if len(words) < 3 {
 		return "", errors.New("Error parsing gh version")
 	}
-	return string(words[2]), nil
+	return words[2], nil
 }
 
 // GetWorkflows returns a list of active workflows.
@@ -88,6 +88,7 @@ func GetWorkflows() ([]GhWorkflow, error) {
 
 // GetWorkflowInputs returns inputs for a workflow.
 func (g *GhWorkflow) GetWorkflowInputs() ([]GhWorkflowInput, error) {
+	//nolint:gosec
 	cmd := exec.Command("gh", "workflow", "view", string(g.Id), "-y")
 	out, err := cmd.Output()
 
@@ -145,7 +146,7 @@ func parseWorkflowInputs(src []byte) ([]GhWorkflowInput, error) {
 				case "type":
 					typeValue = vv.Value.(string)
 				case "options":
-					for _, o := range vv.Value.([]interface{}) {
+					for _, o := range vv.Value.([]any) {
 						options = append(options, o.(string))
 					}
 				}

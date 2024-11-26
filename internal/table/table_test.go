@@ -38,7 +38,9 @@ func TestRender(t *testing.T) {
 	os.Stdout = orgStdout
 
 	buf := bytes.Buffer{}
-	io.Copy(&buf, pr)
+	if _, err := io.Copy(&buf, pr); err != nil {
+		t.Fatal(err)
+	}
 	output := buf.String()
 
 	if output != want {
