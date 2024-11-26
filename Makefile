@@ -3,6 +3,9 @@ VERSION := $$(make -s show-version)
 LDFLAGS := "-s -w"
 GOBIN ?= $(shell go env GOPATH)/bin
 
+setup: $(GOBIN)/lefthook
+	lefthook install
+
 .PHONY: build
 build:
 	go build -ldflags=$(LDFLAGS) -trimpath -o $(BIN) .
@@ -33,3 +36,6 @@ $(GOBIN)/gobump:
 
 $(GOBIN)/goxz:
 	go install github.com/Songmu/goxz/cmd/goxz@latest
+
+$(GOBIN)/lefthook:
+	go install github.com/evilmartians/lefthook@latest
