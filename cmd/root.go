@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	version           = "0.0.1"
+	version           = "0.0.3"
 	requiredGhVersion = "2.35.0"
 )
 
