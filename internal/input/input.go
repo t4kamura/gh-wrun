@@ -56,13 +56,13 @@ func (r *InputResult) askBranch(auto bool) error {
 	}
 
 	if len(rBranches) == 0 {
-		return errors.New("No remote branches found")
+		return errors.New("no remote branches found")
 	}
 
 	if len(rBranches) == 1 && rBranches[0] == currentBranch {
 		answer := interactive.AskConfirm("Run on this branch: " + currentBranch)
 		if !answer {
-			return errors.New("No other executable branch found")
+			return errors.New("no other executable branch found")
 		}
 		r.Branch = currentBranch
 		return nil
@@ -100,7 +100,7 @@ func (r *InputResult) askWorkflow() error {
 	}
 
 	if len(workflows) == 0 {
-		return errors.New("No active workflows found")
+		return errors.New("no active workflows found")
 	}
 
 	workflowNames := []string{}
@@ -130,7 +130,7 @@ func (r *InputResult) askWorkflow() error {
 	}
 
 	if selectedWorkflow.Name == "" {
-		return errors.New("No workflow found")
+		return errors.New("no workflow found")
 	}
 
 	r.Workflow = selectedWorkflow
@@ -143,7 +143,7 @@ func (r *InputResult) askWorkflowInputs() error {
 	answers := []struct{ Key, Value string }{}
 
 	if r.Workflow.Name == "" {
-		return errors.New("No workflow found. Need to run AskWorkflow() before AskWorkflowInputs()")
+		return errors.New("no workflow found. Need to run AskWorkflow() before AskWorkflowInputs()")
 	}
 
 	w, err := r.Workflow.GetWorkflowInputs()

@@ -1,26 +1,43 @@
-run:
-  timeout: 5m
+version: "2"
 linters:
-  disable-all: true
+  default: none
   enable:
-    - gofmt
-    - govet
     - bodyclose
     - errcheck
-    - staticcheck
-    - gosimple
+    - errorlint
+    - gocritic
+    - gosec
+    - govet
     - ineffassign
     - nakedret
     - rowserrcheck
+    - staticcheck
     - unconvert
     - unparam
     - unused
-    - errorlint
-    - gocritic
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
     - goimports
-    - gosec
-linters-settings:
-  gofmt:
-    rewrite-rules:
-      - pattern: interface{}
-        replacement: any
+  settings:
+    gofmt:
+      rewrite-rules:
+        - pattern: interface{}
+          replacement: any
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

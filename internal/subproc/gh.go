@@ -60,7 +60,7 @@ func GetGhVersion() (string, error) {
 		words = append(words, sc.Text())
 	}
 	if len(words) < 3 {
-		return "", errors.New("Error parsing gh version")
+		return "", errors.New("error parsing gh version")
 	}
 	return words[2], nil
 }
@@ -80,7 +80,7 @@ func GetWorkflows() ([]GhWorkflow, error) {
 	}
 
 	if len(workflows) == 0 {
-		return nil, errors.New("No workflows found")
+		return nil, errors.New("no workflows found")
 	}
 
 	return workflows, nil
@@ -127,7 +127,7 @@ func parseWorkflowInputs(src []byte) ([]GhWorkflowInput, error) {
 			required     bool
 			description  string
 			defaultValue string
-			typeValue    string = GhWorkflowInputTypeString
+			typeValue    = GhWorkflowInputTypeString
 			options      []string
 		)
 
